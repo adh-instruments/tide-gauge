@@ -2,7 +2,7 @@
 <html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UNIB Tide Gauge Dashboard</title>
     
     <!-- Favicon -->
@@ -23,28 +23,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        #mini-map { height: 300px; width: 100%; border-radius: 0.5rem; z-index: 1; }
+        
+        #mini-map { height: 250px; width: 100%; border-radius: 0.5rem; z-index: 1; }
+        
+        /* Mobile Overlay Transition */
+        .sidebar-overlay {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s;
+        }
     </style>
 </head>
 
-<body class="h-full flex flex-col overflow-hidden relative">
+<body class="h-full flex flex-col overflow-hidden relative text-sm md:text-base">
 
-    <!-- Support Modal (Hidden by default) -->
-    <div id="support-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] hidden flex items-center justify-center p-4">
+    <!-- Support Modal -->
+    <div id="support-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative animate-[fadeIn_0.3s_ease-out]">
-            <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <button onclick="closeSupportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
             
             <div class="flex items-center gap-3 mb-4 text-red-600">
-                <div class="p-2 bg-red-100 rounded-full">
+                <div class="p-2 bg-red-100 rounded-full shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -57,112 +63,130 @@
             </p>
             
             <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-5">
-                <p class="text-xs text-blue-800 font-semibold mb-1 uppercase tracking-wider">Klik "all time" pada Dashboard untuk melihat data lampau atau Hubungi Dukungan Teknis: </p>
-                <a href="mailto:instruments.adh@gmail.com" class="text-blue-600 font-bold hover:underline flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <p class="text-xs text-blue-800 font-semibold mb-1 uppercase tracking-wider">Klik "all time" pada Dashboard untuk melihat data lampau atau Hubungi Dukungan Teknis:</p>
+                <a href="mailto:instruments.adh@gmail.com" class="text-blue-600 font-bold hover:underline flex items-center gap-2 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     instruments.adh@gmail.com
                 </a>
             </div>
 
-            <button onclick="closeSupportModal()" class="w-full py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors">
+            <button onclick="closeSupportModal()" class="w-full py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors">
                 Tutup / Close
             </button>
         </div>
     </div>
 
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="sidebar-overlay fixed inset-0 bg-black bg-opacity-50 z-30 opacity-0 invisible md:hidden" onclick="toggleSidebar()"></div>
+
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 h-16 flex-none flex items-center justify-between px-6 shadow-sm z-30">
-        <div class="flex items-center gap-4">
+    <header class="bg-white border-b border-gray-200 h-16 flex-none flex items-center justify-between px-4 md:px-6 shadow-sm z-30 relative">
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- Mobile Menu Toggle -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
             <!-- UNIB Logo -->
             <img src="https://www.unib.ac.id/wp-content/uploads/2019/10/logo-unib-e1571906638799.png" 
                  alt="UNIB Logo" 
-                 class="h-10 w-auto object-contain">
+                 class="h-8 md:h-10 w-auto object-contain">
             
-            <div class="h-8 w-px bg-gray-200"></div>
+            <div class="hidden md:block h-8 w-px bg-gray-200"></div>
             
-            <h1 class="text-xl font-bold text-gray-800 tracking-tight hidden md:block">
-                Tide Gauge <span class="text-blue-600">Dashboard</span>
+            <h1 class="text-lg md:text-xl font-bold text-gray-800 tracking-tight truncate">
+                <span class="hidden xs:inline">Tide Gauge</span> <span class="text-blue-600">Dashboard</span>
             </h1>
         </div>
-        <div class="flex items-center gap-4">
-            <span id="system-status" class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-400"></span> Connecting...
+        <div class="flex items-center gap-2 md:gap-4">
+            <span id="system-status" class="px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-gray-100 text-gray-500 flex items-center gap-1.5 whitespace-nowrap">
+                <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400"></span> <span class="hidden sm:inline">Connecting...</span>
             </span>
         </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 flex overflow-hidden relative">
         
-        <!-- Sidebar Controls (Left) -->
-        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col flex-none overflow-y-auto z-20 shadow-lg">
+        <!-- Sidebar Controls (Collapsible on Mobile) -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 md:w-80 bg-white border-r border-gray-200 flex flex-col z-40 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 shadow-xl md:shadow-none h-full overflow-y-auto custom-scrollbar">
             
+            <!-- Mobile Close Button -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-100 md:hidden bg-gray-50">
+                <h2 class="font-bold text-gray-700">Settings & Map</h2>
+                <button onclick="toggleSidebar()" class="p-1 text-gray-500 bg-white border rounded shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
             <!-- 1. Time Range Selector -->
-            <div class="p-5 border-b border-gray-100">
+            <div class="p-4 md:p-5 border-b border-gray-100">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Time Range</h3>
                 <div class="grid grid-cols-3 gap-2 mb-2">
-                    <button onclick="setTimeRange(1)" id="btn-1h" class="time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">1 Hour</button>
-                    <button onclick="setTimeRange(6)" id="btn-6h" class="time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">6 Hours</button>
-                    <button onclick="setTimeRange(12)" id="btn-12h" class="time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">12 Hours</button>
-                    <button onclick="setTimeRange(24)" id="btn-24h" class="time-btn py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all">24 Hours</button>
-                    <button onclick="setTimeRange(168)" id="btn-7d" class="time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">7 Days</button>
-                    <button onclick="setTimeRange('all')" id="btn-all" class="time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">All Time</button>
+                    <button onclick="setTimeRange(1)" id="btn-1h" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all">1 Hour</button>
+                    <button onclick="setTimeRange(6)" id="btn-6h" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all">6 Hours</button>
+                    <button onclick="setTimeRange(12)" id="btn-12h" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all">12 Hours</button>
+                    <button onclick="setTimeRange(24)" id="btn-24h" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all">24 Hours</button>
+                    <button onclick="setTimeRange(168)" id="btn-7d" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all">7 Days</button>
+                    <button onclick="setTimeRange('all')" id="btn-all" class="time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all">All Time</button>
                 </div>
-                <button onclick="toggleManualMode()" id="btn-manual" class="w-full py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-gray-200 transition-all mb-2">
+                <button onclick="toggleManualMode()" id="btn-manual" class="w-full py-2 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-gray-200 transition-all mb-2">
                     Custom Range (Manual)
                 </button>
-                <div id="manual-inputs" class="hidden bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                <div id="manual-inputs" class="hidden bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
                     <div>
-                        <label class="text-[10px] uppercase text-gray-400 font-bold">Start</label>
-                        <input type="datetime-local" id="manual-start" class="w-full text-xs p-1 border rounded">
+                        <label class="text-[10px] uppercase text-gray-400 font-bold block mb-1">Start</label>
+                        <input type="datetime-local" id="manual-start" class="w-full text-xs p-2 border rounded bg-white">
                     </div>
                     <div>
-                        <label class="text-[10px] uppercase text-gray-400 font-bold">End</label>
-                        <input type="datetime-local" id="manual-end" class="w-full text-xs p-1 border rounded">
+                        <label class="text-[10px] uppercase text-gray-400 font-bold block mb-1">End</label>
+                        <input type="datetime-local" id="manual-end" class="w-full text-xs p-2 border rounded bg-white">
                     </div>
-                    <button onclick="applyManualRange()" class="w-full py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">Apply Filter</button>
+                    <button onclick="applyManualRange()" class="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded shadow-sm active:bg-blue-700">Apply Filter</button>
                 </div>
             </div>
 
             <!-- 2. Station Selector -->
-            <div class="p-5 border-b border-gray-100 flex-1">
+            <div class="p-4 md:p-5 border-b border-gray-100 flex-1">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stations</h3>
-                    <button onclick="toggleAllStations()" class="text-xs text-blue-600 hover:underline">Toggle All</button>
+                    <button onclick="toggleAllStations()" class="text-xs text-blue-600 px-2 py-1 bg-blue-50 rounded hover:bg-blue-100">Toggle All</button>
                 </div>
                 <div id="station-toggles" class="space-y-2">
-                    <!-- Checkboxes injected via JS -->
                     <div class="animate-pulse h-10 bg-gray-100 rounded"></div>
                 </div>
             </div>
 
             <!-- 3. Mini Map -->
-            <div class="p-5 bg-gray-50 mt-auto relative">
+            <div class="p-4 md:p-5 bg-gray-50 mt-auto relative">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Location Context</h3>
                 </div>
-                
                 <div id="mini-map" class="border border-gray-200 shadow-inner"></div>
             </div>
         </aside>
 
         <!-- Main Analytics Area (Right) -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50 p-6">
+        <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50 p-4 md:p-6 custom-scrollbar w-full">
             
             <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500">Active Stations</p>
-                    <p id="kpi-active" class="text-2xl font-bold text-gray-800">--</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                    <p class="text-xs md:text-sm text-gray-500">Active Stations</p>
+                    <p id="kpi-active" class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">--</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500">Avg Water Level</p>
-                    <p id="kpi-level" class="text-2xl font-bold text-blue-600">-- cm</p>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                    <p class="text-xs md:text-sm text-gray-500">Avg Water Level</p>
+                    <p id="kpi-level" class="text-2xl md:text-3xl font-bold text-blue-600 mt-1">-- cm</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500">Min System Voltage</p>
-                    <p id="kpi-voltage" class="text-2xl font-bold text-emerald-600">-- V</p>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                    <p class="text-xs md:text-sm text-gray-500">Min System Voltage</p>
+                    <p id="kpi-voltage" class="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">-- V</p>
                 </div>
             </div>
 
@@ -170,35 +194,35 @@
             <div class="space-y-6 mb-6">
                 
                 <!-- Water Level Chart -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-gray-800">Water Level (Distance)</h2>
-                        <button onclick="refreshData()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <h2 class="text-base md:text-lg font-bold text-gray-800">Water Level</h2>
+                        <button onclick="refreshData()" class="text-xs md:text-sm text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 font-medium flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             Refresh
                         </button>
                     </div>
-                    <div class="h-80 relative">
+                    <div class="h-64 md:h-80 relative w-full">
                         <canvas id="main-chart"></canvas>
                     </div>
                 </div>
 
                 <!-- Voltage Chart (Smaller) -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Battery Voltage Health</h2>
-                    <div class="h-48 relative">
+                <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h2 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Battery Voltage Health</h2>
+                    <div class="h-48 relative w-full">
                         <canvas id="voltage-chart"></canvas>
                     </div>
                 </div>
             </div>
 
             <!-- Data Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-h-[300px]">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-700">Recent Readings</h3>
-                    <button onclick="downloadCSV()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm transition-colors">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-h-[300px] mb-6">
+                <div class="px-4 md:px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center flex-wrap gap-2">
+                    <h3 class="font-bold text-gray-700 text-sm md:text-base">Recent Readings</h3>
+                    <button onclick="downloadCSV()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors active:scale-95">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -206,13 +230,13 @@
                     </button>
                 </div>
                 <div class="overflow-x-auto custom-scrollbar h-full max-h-[400px]">
-                    <table class="w-full text-left text-sm text-gray-600">
+                    <table class="w-full text-left text-xs md:text-sm text-gray-600">
                         <thead class="bg-gray-50 text-gray-500 font-medium border-b border-gray-100 sticky top-0">
                             <tr>
-                                <th class="px-6 py-3">Time</th>
-                                <th class="px-6 py-3">Station ID</th>
-                                <th class="px-6 py-3">Water Level (cm)</th>
-                                <th class="px-6 py-3">Voltage (V)</th>
+                                <th class="px-4 md:px-6 py-3 whitespace-nowrap">Time</th>
+                                <th class="px-4 md:px-6 py-3">ID</th>
+                                <th class="px-4 md:px-6 py-3 text-right">Level</th>
+                                <th class="px-4 md:px-6 py-3 text-right">Volt</th>
                             </tr>
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-gray-100"></tbody>
@@ -239,10 +263,27 @@
         let hoursBack = 24;      
         let manualStart = null;  
         let manualEnd = null;
-        let warningModalShown = false; // Prevents spamming modal in one session
+        let warningModalShown = false; 
         
         let mainChart, voltageChart, map;
         const colors = ['#4f46e5', '#ec4899', '#06b6d4', '#f59e0b', '#10b981']; 
+
+        // --- MOBILE UI LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('opacity-0', 'invisible');
+                // Trigger map resize so it renders correctly if it was hidden
+                setTimeout(() => map.invalidateSize(), 300);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0', 'invisible');
+            }
+        }
 
         // --- INIT ---
         window.addEventListener('DOMContentLoaded', async () => {
@@ -263,17 +304,15 @@
                 .subscribe();
         });
 
-        // 1. Setup Mini Map with SATELLITE View + LABELS
+        // 1. Setup Mini Map
         function initMap() {
             map = L.map('mini-map', { zoomControl: true }).setView([-3.79, 102.26], 9);
             
-            // Esri World Imagery (Satellite)
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri',
                 maxZoom: 19
             }).addTo(map);
 
-            // Esri World Boundaries and Places (Labels Overlay)
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Esri',
                 maxZoom: 19
@@ -307,23 +346,24 @@
                 
                 // Add Sidebar Checkbox
                 const div = document.createElement('div');
-                div.className = "flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer";
+                div.className = "flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors";
                 
-                // When clicking the text/box, fly to location
                 div.onclick = (e) => {
                     if (e.target.type !== 'checkbox') {
                          map.flyTo([s.latitude, s.longitude], 14);
+                         // On mobile, maybe close sidebar after selecting station?
+                         // toggleSidebar(); // Optional: uncomment if you want auto-close
                     }
                 };
 
                 div.innerHTML = `
                     <input type="checkbox" id="chk-${s.station_id}" checked 
-                        class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                        class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300 shrink-0"
                         onchange="toggleStation('${s.station_id}')">
-                    <span class="w-3 h-3 rounded-full" style="background-color: ${color}"></span>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-700 leading-none">${s.name}</p>
-                        <p class="text-xs text-gray-400 font-mono mt-0.5">${s.station_id}</p>
+                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${color}"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs md:text-sm font-medium text-gray-700 leading-none truncate">${s.name}</p>
+                        <p class="text-[10px] text-gray-400 font-mono mt-0.5 truncate">${s.station_id}</p>
                     </div>
                 `;
                 container.appendChild(div);
@@ -331,7 +371,6 @@
             
             document.getElementById('kpi-active').textContent = stations.length;
 
-            // Auto-Zoom to fit all stations
             if (stations.length > 0) {
                 map.fitBounds(markersGroup.getBounds().pad(0.2));
             }
@@ -364,7 +403,6 @@
             renderTable(currentReadings);
             updateKPIs(currentReadings);
             
-            // --- UPDATED STATUS & MODAL LOGIC ---
             if (currentReadings.length > 0) {
                 const lastReading = currentReadings[currentReadings.length - 1];
                 const now = new Date();
@@ -397,7 +435,6 @@
             document.getElementById('support-modal').classList.add('hidden');
         }
 
-
         // --- CHARTS & TABLES ---
         function renderCharts(readings) {
             const datasetsDist = [];
@@ -425,17 +462,20 @@
 
             const commonOptions = {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6 } } },
-                scales: { x: { type: 'time', time: { unit: timeUnit }, grid: { display: false } } }
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } } },
+                scales: { 
+                    x: { type: 'time', time: { unit: timeUnit }, grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { ticks: { font: { size: 10 } } } 
+                }
             };
 
             const ctxDist = document.getElementById('main-chart').getContext('2d');
             if (mainChart) mainChart.destroy();
-            mainChart = new Chart(ctxDist, { type: 'line', data: { datasets: datasetsDist }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { title: { display: true, text: 'Distance (cm)' } } } } });
+            mainChart = new Chart(ctxDist, { type: 'line', data: { datasets: datasetsDist }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Distance (cm)', font: {size: 10} } } } } });
 
             const ctxVolt = document.getElementById('voltage-chart').getContext('2d');
             if (voltageChart) voltageChart.destroy();
-            voltageChart = new Chart(ctxVolt, { type: 'line', data: { datasets: datasetsVolt }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { title: { display: true, text: 'Voltage (V)' }, min: 3, max: 4.5 } } } });
+            voltageChart = new Chart(ctxVolt, { type: 'line', data: { datasets: datasetsVolt }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Voltage (V)', font: {size: 10} }, min: 3, max: 4.5 } } } });
         }
 
         function renderTable(readings) {
@@ -443,8 +483,12 @@
             tbody.innerHTML = '';
             [...readings].reverse().slice(0, 500).forEach(r => {
                 const row = document.createElement('tr');
-                row.className = "hover:bg-gray-50 transition-colors";
-                row.innerHTML = `<td class="px-6 py-3 whitespace-nowrap">${new Date(r.created_at).toLocaleString()}</td><td class="px-6 py-3 font-mono text-xs text-gray-500">${r.station_id}</td><td class="px-6 py-3 font-medium text-gray-800">${r.distance_cm.toFixed(1)}</td><td class="px-6 py-3"><span class="${r.voltage < 3.5 ? 'text-red-600 font-bold' : 'text-emerald-600'}">${r.voltage.toFixed(2)}</span></td>`;
+                row.className = "hover:bg-gray-50 transition-colors text-xs md:text-sm";
+                row.innerHTML = `
+                    <td class="px-4 md:px-6 py-3 whitespace-nowrap">${new Date(r.created_at).toLocaleString(undefined, {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})}</td>
+                    <td class="px-4 md:px-6 py-3 font-mono text-gray-500">${r.station_id}</td>
+                    <td class="px-4 md:px-6 py-3 font-medium text-gray-800 text-right">${r.distance_cm.toFixed(1)}</td>
+                    <td class="px-4 md:px-6 py-3 text-right"><span class="${r.voltage < 3.5 ? 'text-red-600 font-bold' : 'text-emerald-600'}">${r.voltage.toFixed(2)}</span></td>`;
                 tbody.appendChild(row);
             });
         }
@@ -462,35 +506,49 @@
         }
 
         function updateKPIs(readings) {
-            if (!readings.length) return;
+            const uniqueActiveStations = new Set(readings.map(r => r.station_id)).size;
+            document.getElementById('kpi-active').textContent = uniqueActiveStations;
+
+            if (!readings.length) {
+                document.getElementById('kpi-level').textContent = '-- cm';
+                document.getElementById('kpi-voltage').textContent = '-- V';
+                return;
+            }
             const recent = readings.slice(-10);
             document.getElementById('kpi-level').textContent = (recent.reduce((a, b) => a + b.distance_cm, 0) / recent.length).toFixed(1) + ' cm';
             const minV = Math.min(...recent.map(r => r.voltage));
             const vEl = document.getElementById('kpi-voltage');
             vEl.textContent = minV.toFixed(2) + ' V';
-            vEl.className = `text-2xl font-bold ${minV < 3.5 ? 'text-red-600 animate-pulse' : 'text-emerald-600'}`;
+            vEl.className = `text-2xl md:text-3xl font-bold ${minV < 3.5 ? 'text-red-600 animate-pulse' : 'text-emerald-600'}`;
         }
 
         function setTimeRange(val) {
             timeMode = 'preset'; hoursBack = val;
             document.getElementById('manual-inputs').classList.add('hidden');
-            document.querySelectorAll('.time-btn').forEach(b => b.className = "time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all");
-            document.getElementById('btn-manual').className = "w-full py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-gray-200 transition-all mb-2";
+            document.querySelectorAll('.time-btn').forEach(b => b.className = "time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all");
+            document.getElementById('btn-manual').className = "w-full py-2 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-gray-200 transition-all mb-2";
             const ab = document.getElementById(typeof val === 'string' ? `btn-${val}` : `btn-${val}h`);
-            if (ab) ab.className = "time-btn py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all";
+            if (ab) ab.className = "time-btn py-2 md:py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all";
             fetchDataAndRender();
+            if (window.innerWidth < 768) toggleSidebar(); // Auto-close on mobile selection
         }
 
         function toggleManualMode() {
             const c = document.getElementById('manual-inputs');
             if (c.classList.contains('hidden')) {
                 c.classList.remove('hidden');
-                document.querySelectorAll('.time-btn').forEach(b => b.className = "time-btn py-1.5 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all");
-                document.getElementById('btn-manual').className = "w-full py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all mb-2";
+                document.querySelectorAll('.time-btn').forEach(b => b.className = "time-btn py-2 md:py-1.5 text-xs font-medium rounded-md text-gray-500 bg-gray-50 border border-transparent active:bg-gray-200 transition-all");
+                document.getElementById('btn-manual').className = "w-full py-2 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all mb-2";
             } else c.classList.add('hidden');
         }
 
-        function applyManualRange() { timeMode = 'manual'; manualStart = document.getElementById('manual-start').value; manualEnd = document.getElementById('manual-end').value; fetchDataAndRender(); }
+        function applyManualRange() { 
+            timeMode = 'manual'; 
+            manualStart = document.getElementById('manual-start').value; 
+            manualEnd = document.getElementById('manual-end').value; 
+            fetchDataAndRender(); 
+            if (window.innerWidth < 768) toggleSidebar();
+        }
         function toggleStation(id) { selectedStationIds.includes(id) ? selectedStationIds = selectedStationIds.filter(x => x !== id) : selectedStationIds.push(id); fetchDataAndRender(); }
         function toggleAllStations() { selectedStationIds.length === stations.length ? (selectedStationIds = [], stations.forEach(s => document.getElementById(`chk-${s.station_id}`).checked = false)) : (selectedStationIds = stations.map(s => s.station_id), stations.forEach(s => document.getElementById(`chk-${s.station_id}`).checked = true)); fetchDataAndRender(); }
         function refreshData() { fetchDataAndRender(); }
@@ -498,20 +556,20 @@
         function updateSystemStatus(s, info) {
             const e = document.getElementById('system-status');
             if (s === 'live') { 
-                e.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live`; 
-                e.className = "px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-2"; 
+                e.innerHTML = `<span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse"></span> <span class="hidden sm:inline">Live</span>`; 
+                e.className = "px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1.5 whitespace-nowrap"; 
             }
             else if (s === 'loading') { 
-                e.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-bounce"></span> Loading...`; 
-                e.className = "px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 flex items-center gap-2"; 
+                e.innerHTML = `<span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-400 animate-bounce"></span> <span class="hidden sm:inline">Loading...</span>`; 
+                e.className = "px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-yellow-100 text-yellow-700 flex items-center gap-1.5 whitespace-nowrap"; 
             }
             else if (s === 'offline') {
-                e.innerHTML = `<span class="w-2 h-2 rounded-full bg-gray-400"></span> ${info || 'Offline'}`; 
-                e.className = "px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 flex items-center gap-2"; 
+                e.innerHTML = `<span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400"></span> ${info || 'Offline'}`; 
+                e.className = "px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-gray-100 text-gray-600 flex items-center gap-1.5 whitespace-nowrap"; 
             }
             else { 
-                e.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Error`; 
-                e.className = "px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 flex items-center gap-2"; 
+                e.innerHTML = `<span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500"></span> Error`; 
+                e.className = "px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-red-100 text-red-700 flex items-center gap-1.5 whitespace-nowrap"; 
             }
         }
     </script>
