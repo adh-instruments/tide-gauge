@@ -99,7 +99,7 @@
             <div class="hidden md:block h-8 w-px bg-gray-200"></div>
             
             <h1 class="text-lg md:text-xl font-bold text-gray-800 tracking-tight truncate">
-                <span class="hidden xs:inline">Tide Gauge</span> <span class="text-blue-600">Dashboard</span>
+                <span class="hidden xs:inline"></span> <span class="text-blue-600">UNIB Tide Gauge Dashboard</span>
             </h1>
         </div>
         <div class="flex items-center gap-2 md:gap-4">
@@ -267,6 +267,9 @@
         
         let mainChart, voltageChart, map;
         const colors = ['#4f46e5', '#ec4899', '#06b6d4', '#f59e0b', '#10b981']; 
+        
+        // --- CONCURRENCY CONTROL ---
+        let isFetching = false;
 
         // --- MOBILE UI LOGIC ---
         function toggleSidebar() {
@@ -277,7 +280,6 @@
             if (isClosed) {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('opacity-0', 'invisible');
-                // Trigger map resize so it renders correctly if it was hidden
                 setTimeout(() => map.invalidateSize(), 300);
             } else {
                 sidebar.classList.add('-translate-x-full');
@@ -297,11 +299,12 @@
 
             await fetchDataAndRender();
             
-            db.channel('analytics-updates')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tide_readings' }, () => {
-                    if (timeMode === 'preset' && typeof hoursBack === 'number') refreshData(); 
-                })
-                .subscribe();
+            // --- HIGH SPEED POLLING (100ms) ---
+            setInterval(() => {
+                if(timeMode === 'preset') { 
+                    fetchDataAndRender();
+                }
+            }, 100);
         });
 
         // 1. Setup Mini Map
@@ -319,7 +322,7 @@
             }).addTo(map);
         }
 
-        // 2. Fetch Stations & Build Controls
+        // 2. Fetch Stations
         async function fetchStations() {
             const { data, error } = await db.from('tide_stations').select('*');
             if (error) return console.error(error);
@@ -330,13 +333,11 @@
             const container = document.getElementById('station-toggles');
             container.innerHTML = '';
             
-            // Feature Group for Auto-Zoom
             const markersGroup = L.featureGroup();
 
             stations.forEach((s, index) => {
                 const color = colors[index % colors.length];
                 
-                // Add Marker
                 const marker = L.circleMarker([s.latitude, s.longitude], {
                     color: color, fillColor: color, fillOpacity: 0.8, radius: 8, weight: 2, className: 'station-marker'
                 }).addTo(map);
@@ -344,15 +345,12 @@
                 marker.bindPopup(`<b class="text-sm">${s.name}</b>`);
                 markersGroup.addLayer(marker);
                 
-                // Add Sidebar Checkbox
                 const div = document.createElement('div');
                 div.className = "flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors";
                 
                 div.onclick = (e) => {
                     if (e.target.type !== 'checkbox') {
                          map.flyTo([s.latitude, s.longitude], 14);
-                         // On mobile, maybe close sidebar after selecting station?
-                         // toggleSidebar(); // Optional: uncomment if you want auto-close
                     }
                 };
 
@@ -376,54 +374,65 @@
             }
         }
 
-        // --- DATA FETCHING ---
+        // --- DATA FETCHING (OPTIMIZED) ---
         async function fetchDataAndRender() {
-            updateSystemStatus('loading');
-            let query = db.from('tide_readings')
-                .select('*')
-                .in('station_id', selectedStationIds)
-                .order('created_at', { ascending: true });
+            if(isFetching) return; // Prevent Overlap
+            isFetching = true;
+            
+            // Only show loading on initial load or manual refresh, not on polling tick
+            // updateSystemStatus('loading'); 
 
-            if (timeMode === 'preset') {
-                if (hoursBack !== 'all') {
-                    const date = new Date();
-                    date.setHours(date.getHours() - hoursBack);
-                    query = query.gte('created_at', date.toISOString());
+            try {
+                let query = db.from('tide_readings')
+                    .select('*')
+                    .in('station_id', selectedStationIds)
+                    .order('created_at', { ascending: true });
+
+                if (timeMode === 'preset') {
+                    if (hoursBack !== 'all') {
+                        const date = new Date();
+                        date.setHours(date.getHours() - hoursBack);
+                        query = query.gte('created_at', date.toISOString());
+                    }
+                } else if (timeMode === 'manual') {
+                    if (manualStart) query = query.gte('created_at', manualStart);
+                    if (manualEnd) query = query.lte('created_at', manualEnd);
                 }
-            } else if (timeMode === 'manual') {
-                if (manualStart) query = query.gte('created_at', manualStart);
-                if (manualEnd) query = query.lte('created_at', manualEnd);
-            }
 
-            const { data, error } = await query;
-            if (error) { console.error(error); updateSystemStatus('error'); return; }
-            currentReadings = data || [];
-            
-            renderCharts(currentReadings);
-            renderTable(currentReadings);
-            updateKPIs(currentReadings);
-            
-            if (currentReadings.length > 0) {
-                const lastReading = currentReadings[currentReadings.length - 1];
-                const now = new Date();
-                const lastTime = new Date(lastReading.created_at);
-                const diffHours = (now - lastTime) / (1000 * 60 * 60);
+                const { data, error } = await query;
+                if (error) { console.error(error); updateSystemStatus('error'); return; }
+                currentReadings = data || [];
+                
+                renderCharts(currentReadings);
+                renderTable(currentReadings);
+                updateKPIs(currentReadings);
+                
+                if (currentReadings.length > 0) {
+                    const lastReading = currentReadings[currentReadings.length - 1];
+                    const now = new Date();
+                    const lastTime = new Date(lastReading.created_at);
+                    const diffHours = (now - lastTime) / (1000 * 60 * 60);
 
-                if (diffHours <= 24) {
-                    updateSystemStatus('live');
+                    if (diffHours <= 24) {
+                        updateSystemStatus('live');
+                    } else {
+                        const days = Math.floor(diffHours / 24);
+                        const timeStr = days > 0 ? `${days}d ago` : `${Math.floor(diffHours)}h ago`;
+                        updateSystemStatus('offline', `Updated ${timeStr}`);
+                        triggerWarningModal();
+                    }
                 } else {
-                    const days = Math.floor(diffHours / 24);
-                    const timeStr = days > 0 ? `${days}d ago` : `${Math.floor(diffHours)}h ago`;
-                    updateSystemStatus('offline', `Updated ${timeStr}`);
+                    updateSystemStatus('offline', 'No Recent Data');
                     triggerWarningModal();
                 }
-            } else {
-                updateSystemStatus('offline', 'No Recent Data');
-                triggerWarningModal();
+            } catch (err) {
+                console.error(err);
+                updateSystemStatus('error');
+            } finally {
+                isFetching = false;
             }
         }
 
-        // --- MODAL FUNCTIONS ---
         function triggerWarningModal() {
             if (!warningModalShown) {
                 document.getElementById('support-modal').classList.remove('hidden');
@@ -435,7 +444,7 @@
             document.getElementById('support-modal').classList.add('hidden');
         }
 
-        // --- CHARTS & TABLES ---
+        // --- CHARTS (OPTIMIZED FOR HIGH SPEED) ---
         function renderCharts(readings) {
             const datasetsDist = [];
             const datasetsVolt = [];
@@ -462,6 +471,7 @@
 
             const commonOptions = {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                animation: false, // DISABLE ANIMATION for 100ms updates
                 plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } } },
                 scales: { 
                     x: { type: 'time', time: { unit: timeUnit }, grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -469,23 +479,35 @@
                 }
             };
 
-            const ctxDist = document.getElementById('main-chart').getContext('2d');
-            if (mainChart) mainChart.destroy();
-            mainChart = new Chart(ctxDist, { type: 'line', data: { datasets: datasetsDist }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Distance (cm)', font: {size: 10} } } } } });
+            // Optimize Chart Updates (Re-use instance if possible)
+            if (mainChart) {
+                mainChart.data.datasets = datasetsDist;
+                mainChart.options.scales.x.time.unit = timeUnit;
+                mainChart.update('none'); // Update mode 'none' = no animation
+            } else {
+                const ctxDist = document.getElementById('main-chart').getContext('2d');
+                mainChart = new Chart(ctxDist, { type: 'line', data: { datasets: datasetsDist }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Distance (cm)', font: {size: 10} } } } } });
+            }
 
-            const ctxVolt = document.getElementById('voltage-chart').getContext('2d');
-            if (voltageChart) voltageChart.destroy();
-            voltageChart = new Chart(ctxVolt, { type: 'line', data: { datasets: datasetsVolt }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Voltage (V)', font: {size: 10} }, min: 3, max: 4.5 } } } });
+            if (voltageChart) {
+                voltageChart.data.datasets = datasetsVolt;
+                voltageChart.options.scales.x.time.unit = timeUnit;
+                voltageChart.update('none');
+            } else {
+                const ctxVolt = document.getElementById('voltage-chart').getContext('2d');
+                voltageChart = new Chart(ctxVolt, { type: 'line', data: { datasets: datasetsVolt }, options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, title: { display: true, text: 'Voltage (V)', font: {size: 10} }, min: 3, max: 4.5 } } } });
+            }
         }
 
         function renderTable(readings) {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
-            [...readings].reverse().slice(0, 500).forEach(r => {
+            // Only render top 50 to save CPU on high speed updates
+            [...readings].reverse().slice(0, 50).forEach(r => {
                 const row = document.createElement('tr');
                 row.className = "hover:bg-gray-50 transition-colors text-xs md:text-sm";
                 row.innerHTML = `
-                    <td class="px-4 md:px-6 py-3 whitespace-nowrap">${new Date(r.created_at).toLocaleString(undefined, {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})}</td>
+                    <td class="px-4 md:px-6 py-3 whitespace-nowrap">${new Date(r.created_at).toLocaleString(undefined, {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'})}</td>
                     <td class="px-4 md:px-6 py-3 font-mono text-gray-500">${r.station_id}</td>
                     <td class="px-4 md:px-6 py-3 font-medium text-gray-800 text-right">${r.distance_cm.toFixed(1)}</td>
                     <td class="px-4 md:px-6 py-3 text-right"><span class="${r.voltage < 3.5 ? 'text-red-600 font-bold' : 'text-emerald-600'}">${r.voltage.toFixed(2)}</span></td>`;
@@ -530,7 +552,7 @@
             const ab = document.getElementById(typeof val === 'string' ? `btn-${val}` : `btn-${val}h`);
             if (ab) ab.className = "time-btn py-2 md:py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transition-all";
             fetchDataAndRender();
-            if (window.innerWidth < 768) toggleSidebar(); // Auto-close on mobile selection
+            if (window.innerWidth < 768) toggleSidebar(); 
         }
 
         function toggleManualMode() {
