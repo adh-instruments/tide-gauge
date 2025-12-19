@@ -181,7 +181,7 @@
                     <p id="kpi-active" class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">--</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <p class="text-xs md:text-sm text-gray-500">Avg Water Level</p>
+                    <p class="text-xs md:text-sm text-gray-500">Real Time Water Level</p>
                     <p id="kpi-level" class="text-2xl md:text-3xl font-bold text-blue-600 mt-1">-- cm</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
@@ -537,7 +537,11 @@
                 return;
             }
             const recent = readings.slice(-10);
-            document.getElementById('kpi-level').textContent = (recent.reduce((a, b) => a + b.distance_cm, 0) / recent.length).toFixed(1) + ' cm';
+            
+            // Use the absolute latest reading for "Real Time"
+            const latestReading = readings[readings.length - 1];
+            document.getElementById('kpi-level').textContent = latestReading.distance_cm.toFixed(1) + ' cm';
+            
             const minV = Math.min(...recent.map(r => r.voltage));
             const vEl = document.getElementById('kpi-voltage');
             vEl.textContent = minV.toFixed(2) + ' V';
