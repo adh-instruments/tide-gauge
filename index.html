@@ -183,6 +183,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
                     <p class="text-xs md:text-sm text-gray-500">Real Time Water Level</p>
                     <p id="kpi-level" class="text-2xl md:text-3xl font-bold text-blue-600 mt-1">-- cm</p>
+                    <p id="kpi-level-source" class="text-[10px] text-gray-400 mt-1 font-mono truncate">Waiting for data...</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
                     <p class="text-xs md:text-sm text-gray-500">Min System Voltage</p>
@@ -530,10 +531,13 @@
         function updateKPIs(readings) {
             const uniqueActiveStations = new Set(readings.map(r => r.station_id)).size;
             document.getElementById('kpi-active').textContent = uniqueActiveStations;
+            
+            const kpiSourceEl = document.getElementById('kpi-level-source');
 
             if (!readings.length) {
                 document.getElementById('kpi-level').textContent = '-- cm';
                 document.getElementById('kpi-voltage').textContent = '-- V';
+                kpiSourceEl.textContent = 'No data selected';
                 return;
             }
             const recent = readings.slice(-10);
@@ -541,6 +545,11 @@
             // Use the absolute latest reading for "Real Time"
             const latestReading = readings[readings.length - 1];
             document.getElementById('kpi-level').textContent = latestReading.distance_cm.toFixed(1) + ' cm';
+            
+            // Find station name
+            const station = stations.find(s => s.station_id === latestReading.station_id);
+            const stationName = station ? station.name : latestReading.station_id;
+            kpiSourceEl.textContent = `Latest from: ${stationName}`;
             
             const minV = Math.min(...recent.map(r => r.voltage));
             const vEl = document.getElementById('kpi-voltage');
