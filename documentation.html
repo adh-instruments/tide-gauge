@@ -47,115 +47,116 @@
                 <a href="#hardware" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">3. Merakit Perangkat</a>
                 <a href="#code" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">4. Pemrograman (Coding)</a>
                 <a href="#database" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">5. Setup Database</a>
-                <a href="#datascience" class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">6. Analisis Pasut(Google Colab)</a>
+                <a href="#datascience" class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">6. Analisis Ilmiah (Colab)</a>
             </nav>
         </aside>
 
         <!-- Content -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
-            <div class="max-w-4xl mx-auto prose">
-                
-                <div id="intro" class="mb-10">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">Dokumentasi & Panduan Sistem Tide Gauge</h1>
-                    <p class="text-lg">Selamat datang di halaman dokumentasi. Halaman ini dirancang untuk memandu mahasiswa dalam memahami, menggunakan, dan merakit ulang sistem pemantauan pasang surut air laut (Tide Gauge) berbasis IoT.</p>
-                </div>
-
-                <section id="dashboard">
-                    <h2 class="text-2xl font-bold">1. Menggunakan Dashboard</h2>
-                    <p>Dashboard ini menampilkan data <b>real-time</b> dari sensor yang dipasang di lapangan. Berikut fitur utamanya:</p>
-                    <ul class="list-disc pl-5 space-y-2">
-                        <li><b>Peta Lokasi:</b> Menampilkan posisi alat. Gunakan checkbox di sidebar kiri untuk menampilkan/menyembunyikan stasiun tertentu.</li>
-                        <li><b>Grafik Pasang Surut:</b> Garis biru menunjukkan ketinggian air (cm) terhadap waktu. Data diperbarui otomatis setiap 100ms.</li>
-                        <li><b>Status Baterai:</b> Grafik bawah memantau tegangan baterai. Jika tegangan turun di bawah 3.5V, angka akan berwarna merah (perlu penggantian baterai).</li>
-                        <li><b>Download CSV:</b> Tombol hijau di pojok kanan tabel untuk mengunduh data ke Excel.</li>
-                    </ul>
-                </section>
-
-                <section id="csv">
-                    <h2 class="text-2xl font-bold">2. Mengolah Data CSV di Excel</h2>
-                    <p>File CSV yang diunduh sudah diformat agar mudah dibaca oleh Microsoft Excel. Namun, jika kolom waktu (Timestamp) tidak terbaca otomatis, ikuti langkah ini:</p>
-                    <ol class="list-decimal pl-5 space-y-2">
-                        <li>Buka file CSV di Excel.</li>
-                        <li>Blok kolom <b>A (Timestamp)</b>.</li>
-                        <li>Klik menu <b>Data</b> &rarr; <b>Text to Columns</b>.</li>
-                        <li>Pilih <b>Delimited</b> &rarr; Next &rarr; Uncheck semua &rarr; Next.</li>
-                        <li>Pada "Column Data Format", pilih <b>Date: YMD</b>.</li>
-                        <li>Klik <b>Finish</b>. Excel akan mengenali tanggal dan waktu dengan benar.</li>
-                    </ol>
-                </section>
-
-                <section id="hardware">
-                    <h2 class="text-2xl font-bold">3. Merakit Perangkat (Hardware)</h2>
-                    <p>Sistem ini menggunakan mikrokontroler <b>Lolin32 Lite (ESP32)</b> dan sensor ultrasonik <b>HC-SR04</b>.</p>
+        <main class="flex-1 overflow-y-auto scroll-smooth">
+            <div class="p-6 md:p-10">
+                <div class="max-w-4xl mx-auto prose">
                     
-                    <h3 class="text-lg font-bold">Komponen yang Dibutuhkan:</h3>
-                    <ul class="list-disc pl-5">
-                        <li>Lolin32 Lite (atau ESP32 Dev Module)</li>
-                        <li>Sensor Ultrasonik HC-SR04</li>
-                        <li>Resistor 100k Ohm (R1) & 100k Ohm (R2) untuk pembagi tegangan baterai.</li>
-                        <li>Kabel Jumper & Breadboard/PCB</li>
-                    </ul>
-
-                    <h3 class="text-lg font-bold mt-4">Skema Sambungan Kabel (Wiring):</h3>
-                    <div class="bg-gray-100 p-4 rounded-lg border border-gray-300 font-mono text-sm overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b border-gray-400">
-                                    <th class="py-2">Komponen</th>
-                                    <th class="py-2">Pin Komponen</th>
-                                    <th class="py-2">Pin ESP32 (Lolin32)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="py-2">HC-SR04</td>
-                                    <td>VCC</td>
-                                    <td>5V / VBUS</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2">HC-SR04</td>
-                                    <td>GND</td>
-                                    <td>GND</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2">HC-SR04</td>
-                                    <td><b>Trig</b></td>
-                                    <td><b>Pin 14</b></td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2">HC-SR04</td>
-                                    <td><b>Echo</b></td>
-                                    <td><b>Pin 12</b></td>
-                                </tr>
-                                <tr class="border-t border-gray-300">
-                                    <td class="py-2">Baterai (+)</td>
-                                    <td>Positif (+)</td>
-                                    <td>Ke Resistor R1 (lalu ke Pin 32)</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div id="intro" class="mb-10">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-4">Dokumentasi & Panduan Sistem Tide Gauge</h1>
+                        <p class="text-lg">Selamat datang di halaman dokumentasi. Halaman ini dirancang untuk memandu mahasiswa dalam memahami, menggunakan, dan merakit ulang sistem pemantauan pasang surut air laut (Tide Gauge) berbasis IoT.</p>
                     </div>
-                </section>
 
-                <section id="code">
-                    <h2 class="text-2xl font-bold">4. Pemrograman (Coding)</h2>
-                    <p>Untuk memprogram alat, Anda memerlukan software <b>Arduino IDE</b>.</p>
+                    <section id="dashboard">
+                        <h2 class="text-2xl font-bold">1. Menggunakan Dashboard</h2>
+                        <p>Dashboard ini menampilkan data <b>real-time</b> dari sensor yang dipasang di lapangan. Berikut fitur utamanya:</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><b>Peta Lokasi:</b> Menampilkan posisi alat. Gunakan checkbox di sidebar kiri untuk menampilkan/menyembunyikan stasiun tertentu.</li>
+                            <li><b>Grafik Pasang Surut:</b> Garis biru menunjukkan ketinggian air (cm) terhadap waktu. Data diperbarui otomatis setiap 100ms.</li>
+                            <li><b>Status Baterai:</b> Grafik bawah memantau tegangan baterai. Jika tegangan turun di bawah 3.5V, angka akan berwarna merah (perlu penggantian baterai).</li>
+                            <li><b>Download CSV:</b> Tombol hijau di pojok kanan tabel untuk mengunduh data ke Excel.</li>
+                        </ul>
+                    </section>
 
-                    <h3 class="text-lg font-bold">Langkah Persiapan:</h3>
-                    <ol class="list-decimal pl-5 space-y-2">
-                        <li>Install <a href="https://www.arduino.cc/en/software" target="_blank" class="text-blue-600 underline">Arduino IDE</a>.</li>
-                        <li>Buka menu <b>File</b> &rarr; <b>Preferences</b>.</li>
-                        <li>Di kotak "Additional Boards Manager URLs", masukkan: <br><code class="bg-gray-100 p-1 text-xs">https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</code></li>
-                        <li>Buka <b>Tools</b> &rarr; <b>Board</b> &rarr; <b>Boards Manager</b>. Cari "esp32" dan install versi terbaru.</li>
-                        <li>Buka <b>Tools</b> &rarr; <b>Manage Libraries</b>. Cari dan install library: <b>ArduinoJson</b>.</li>
-                    </ol>
+                    <section id="csv">
+                        <h2 class="text-2xl font-bold">2. Mengolah Data CSV di Excel</h2>
+                        <p>File CSV yang diunduh sudah diformat agar mudah dibaca oleh Microsoft Excel. Namun, jika kolom waktu (Timestamp) tidak terbaca otomatis, ikuti langkah ini:</p>
+                        <ol class="list-decimal pl-5 space-y-2">
+                            <li>Buka file CSV di Excel.</li>
+                            <li>Blok kolom <b>A (Timestamp)</b>.</li>
+                            <li>Klik menu <b>Data</b> &rarr; <b>Text to Columns</b>.</li>
+                            <li>Pilih <b>Delimited</b> &rarr; Next &rarr; Uncheck semua &rarr; Next.</li>
+                            <li>Pada "Column Data Format", pilih <b>Date: YMD</b>.</li>
+                            <li>Klik <b>Finish</b>. Excel akan mengenali tanggal dan waktu dengan benar.</li>
+                        </ol>
+                    </section>
 
-                    <h3 class="text-lg font-bold mt-6">Source Code (Sketch):</h3>
-                    <p>Salin kode di bawah ini ke Arduino IDE. Jangan lupa ubah <code>ssid</code>, <code>password</code>, dan <code>station_id</code> sesuai alat Anda.</p>
-                    
-                    <div class="relative mt-4">
-                        <button onclick="copyCode()" class="absolute top-2 right-2 bg-gray-700 text-white text-xs px-3 py-1 rounded hover:bg-gray-600 z-10">Copy Code</button>
-                        <pre><code id="arduino-code" class="language-cpp">
+                    <section id="hardware">
+                        <h2 class="text-2xl font-bold">3. Merakit Perangkat (Hardware)</h2>
+                        <p>Sistem ini menggunakan mikrokontroler <b>Lolin32 Lite (ESP32)</b> dan sensor ultrasonik <b>HC-SR04</b>.</p>
+                        
+                        <h3 class="text-lg font-bold">Komponen yang Dibutuhkan:</h3>
+                        <ul class="list-disc pl-5">
+                            <li>Lolin32 Lite (atau ESP32 Dev Module)</li>
+                            <li>Sensor Ultrasonik HC-SR04</li>
+                            <li>Resistor 100k Ohm (R1) & 100k Ohm (R2) untuk pembagi tegangan baterai.</li>
+                            <li>Kabel Jumper & Breadboard/PCB</li>
+                        </ul>
+
+                        <h3 class="text-lg font-bold mt-4">Skema Sambungan Kabel (Wiring):</h3>
+                        <div class="bg-gray-100 p-4 rounded-lg border border-gray-300 font-mono text-sm overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-gray-400">
+                                        <th class="py-2">Komponen</th>
+                                        <th class="py-2">Pin Komponen</th>
+                                        <th class="py-2">Pin ESP32 (Lolin32)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="py-2">HC-SR04</td>
+                                        <td>VCC</td>
+                                        <td>5V / VBUS</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">HC-SR04</td>
+                                        <td>GND</td>
+                                        <td>GND</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">HC-SR04</td>
+                                        <td><b>Trig</b></td>
+                                        <td><b>Pin 14</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">HC-SR04</td>
+                                        <td><b>Echo</b></td>
+                                        <td><b>Pin 12</b></td>
+                                    </tr>
+                                    <tr class="border-t border-gray-300">
+                                        <td class="py-2">Baterai (+)</td>
+                                        <td>Positif (+)</td>
+                                        <td>Ke Resistor R1 (lalu ke Pin 32)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section id="code">
+                        <h2 class="text-2xl font-bold">4. Pemrograman (Coding)</h2>
+                        <p>Untuk memprogram alat, Anda memerlukan software <b>Arduino IDE</b>.</p>
+
+                        <h3 class="text-lg font-bold">Langkah Persiapan:</h3>
+                        <ol class="list-decimal pl-5 space-y-2">
+                            <li>Install <a href="https://www.arduino.cc/en/software" target="_blank" class="text-blue-600 underline">Arduino IDE</a>.</li>
+                            <li>Buka menu <b>File</b> &rarr; <b>Preferences</b>.</li>
+                            <li>Di kotak "Additional Boards Manager URLs", masukkan: <br><code class="bg-gray-100 p-1 text-xs">https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</code></li>
+                            <li>Buka <b>Tools</b> &rarr; <b>Board</b> &rarr; <b>Boards Manager</b>. Cari "esp32" dan install versi terbaru.</li>
+                            <li>Buka <b>Tools</b> &rarr; <b>Manage Libraries</b>. Cari dan install library: <b>ArduinoJson</b>.</li>
+                        </ol>
+
+                        <h3 class="text-lg font-bold mt-6">Source Code (Sketch):</h3>
+                        <p>Salin kode di bawah ini ke Arduino IDE. Jangan lupa ubah <code>ssid</code>, <code>password</code>, dan <code>station_id</code> sesuai alat Anda.</p>
+                        
+                        <div class="relative mt-4">
+                            <button onclick="copyCode()" class="absolute top-2 right-2 bg-gray-700 text-white text-xs px-3 py-1 rounded hover:bg-gray-600 z-10">Copy Code</button>
+                            <pre><code id="arduino-code" class="language-cpp">
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -269,17 +270,17 @@ float readBatteryVoltage() {
   float raw = analogRead(voltagePin) * (3.3 / 4095.0);
   return (raw * (R1 + R2)) / R2;
 }
-                        </code></pre>
-                    </div>
-                </section>
+                            </code></pre>
+                        </div>
+                    </section>
 
-                <section id="database">
-                    <h2 class="text-2xl font-bold">5. Persiapan Database (Supabase)</h2>
-                    <p>Jika Anda membuat project baru di Supabase, Anda perlu membuat tabel database agar data bisa masuk. Buka <b>SQL Editor</b> di Supabase dan jalankan perintah berikut:</p>
-                    
-                    <div class="relative bg-gray-800 rounded-lg p-4 text-gray-100 font-mono text-sm mb-6">
-                        <button onclick="copySQL()" class="absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-xs">Copy SQL</button>
-                        <code id="sql-code">
+                    <section id="database">
+                        <h2 class="text-2xl font-bold">5. Persiapan Database (Supabase)</h2>
+                        <p>Jika Anda membuat project baru di Supabase, Anda perlu membuat tabel database agar data bisa masuk. Buka <b>SQL Editor</b> di Supabase dan jalankan perintah berikut:</p>
+                        
+                        <div class="relative bg-gray-800 rounded-lg p-4 text-gray-100 font-mono text-sm mb-6">
+                            <button onclick="copySQL()" class="absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-xs">Copy SQL</button>
+                            <code id="sql-code">
 -- 1. Buat Tabel Stasiun (Lokasi)
 CREATE TABLE tide_stations (
     station_id TEXT PRIMARY KEY,
@@ -308,37 +309,52 @@ ALTER TABLE tide_stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tide_readings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public Access" ON tide_stations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (true);
-                        </code>
-                    </div>
-                </section>
-
-                <section id="datascience" class="pb-20">
-                    <h2 class="text-2xl font-bold text-blue-800">6. Analisis Pasut (Google Colab)</h2>
-                    <p>Gunakan Google Colab untuk menganalisis periodisitas data pasang surut menggunakan <b>Fast Fourier Transform (FFT)</b>. Notebook ini otomatis memisahkan data berdasarkan <i>Station ID</i> dan menampilkan grafik domain periode (Periodogram).</p>
-
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                        <h3 class="text-lg font-bold text-blue-900 mt-0">Cara Menggunakan:</h3>
-                        <ol class="list-decimal pl-5 space-y-2 text-blue-800">
-                            <li>Download file Notebook (.ipynb) menggunakan tombol di bawah.</li>
-                            <li>Buka <a href="https://colab.research.google.com" target="_blank" class="underline font-bold">Google Colab</a>.</li>
-                            <li>Pilih tab <b>"Upload"</b> dan pilih file yang baru saja didownload.</li>
-                            <li>Di Dashboard ini, klik tombol hijau <b>"Download CSV"</b> untuk mendapatkan data terbaru.</li>
-                            <li>Di Google Colab, jalankan sel pertama (tombol Play). Upload file CSV Anda saat diminta.</li>
-                            <li>Notebook akan otomatis memproses semua stasiun dan menampilkan grafik analisis.</li>
-                        </ol>
-                        
-                        <div class="mt-6">
-                            <button onclick="downloadNotebook()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-transform active:scale-95">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download Notebook (.ipynb)
-                            </button>
+                            </code>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
+                    <section id="datascience" class="pb-20">
+                        <h2 class="text-2xl font-bold text-blue-800">6. Analisis Pasut (Google Colab)</h2>
+                        <p>Gunakan Google Colab untuk menganalisis periodisitas data pasang surut menggunakan <b>Fast Fourier Transform (FFT)</b>. Notebook ini otomatis memisahkan data berdasarkan <i>Station ID</i> dan menampilkan grafik domain periode (Periodogram). <b>Data hasil analisis yang telah dibersihkan (resampled) juga dapat diunduh kembali.</b></p>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-bold text-blue-900 mt-0">Cara Menggunakan:</h3>
+                            <ol class="list-decimal pl-5 space-y-2 text-blue-800">
+                                <li>Download file Notebook (.ipynb) menggunakan tombol di bawah.</li>
+                                <li>Buka <a href="https://colab.research.google.com" target="_blank" class="underline font-bold">Google Colab</a>.</li>
+                                <li>Pilih tab <b>"Upload"</b> dan pilih file yang baru saja didownload.</li>
+                                <li>Di Dashboard ini, klik tombol hijau <b>"Download CSV"</b> untuk mendapatkan data terbaru.</li>
+                                <li>Di Google Colab, jalankan sel pertama (tombol Play). Upload file CSV Anda saat diminta.</li>
+                                <li>Notebook akan menampilkan grafik periodogram.</li>
+                                <li>Jalankan sel terakhir di Colab untuk <b>mengunduh data hasil resampling</b> (file CSV yang sudah dirapikan interval waktunya).</li>
+                            </ol>
+                            
+                            <div class="mt-6">
+                                <button onclick="downloadNotebook()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-transform active:scale-95">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download Notebook (.ipynb)
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
             </div>
+
+            <!-- Footer placed inside Main Content scroll area -->
+            <footer class="bg-white border-t border-gray-200 py-6 mt-auto">
+                <div class="max-w-4xl mx-auto px-4 text-center text-sm text-gray-500">
+                    <p>&copy; 2025 UNIB Tide Gauge Project</p>
+                    <p class="mt-1">
+                        Contact: <a href="mailto:instruments.adh@gmail.com" class="text-blue-600 hover:underline">instruments.adh@gmail.com</a>
+                    </p>
+                    <p class="mt-1 text-xs">
+                        Maintained by <b>Muhammad Khafid Fauzi</b> & <b>Ahmad Dhuha Habibullah</b>
+                    </p>
+                </div>
+            </footer>
         </main>
     </div>
 
@@ -370,10 +386,12 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                             "- Otomatis mendeteksi semua Station ID.\n",
                             "- Resampling data agar interval waktu seragam (syarat FFT).\n",
                             "- Menghitung Periodogram (Amplitudo vs Periode).\n",
+                            "- **Download Data:** Menyimpan dan mengunduh data yang sudah di-resample.\n",
                             "\n",
                             "**Cara Pakai:**\n",
-                            "1. Jalankan sel di bawah.\n",
-                            "2. Upload file CSV dari dashboard."
+                            "1. Jalankan sel di bawah, lalu *scroll down* sampai ke ujung sel pertama.\n",
+                            "2. Upload file CSV dari dashboard.\n",
+                            "3. Ketika proses analisis sudah selesai, klik *play* pada sel selanjutnya untuk dapat mendownload data pasut yang sudah di-*resample*."
                         ]
                     },
                     {
@@ -388,6 +406,9 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                             "from scipy.fft import rfft, rfftfreq\n",
                             "from google.colab import files\n",
                             "import io\n",
+                            "\n",
+                            "# Variable untuk menyimpan data hasil resample\n",
+                            "all_resampled_data = {}\n",
                             "\n",
                             "# 1. Upload File\n",
                             "print('Silakan upload file CSV Anda...')\n",
@@ -435,6 +456,9 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                             "            # Resample 15T (15 menit) dan interpolasi data kosong\n",
                             "            resampled = sub_df[val_col].resample('15T').mean().interpolate(method='linear')\n",
                             "            \n",
+                            "            # Simpan hasil resample ke variable global untuk didownload nanti\n",
+                            "            all_resampled_data[station] = resampled\n",
+                            "            \n",
                             "            # Siapkan Data FFT\n",
                             "            y = resampled.values\n",
                             "            N = len(y)\n",
@@ -470,7 +494,7 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                             "            ax2.plot(periods[mask], amplitude[mask], color='tab:red')\n",
                             "            ax2.set_title(f'Analisis Periodisitas (FFT): {station}')\n",
                             "            ax2.set_xlabel('Periode (Jam)')\n",
-                            "            ax2.set_ylabel('(Amplitudo)')\n",
+                            "            ax2.set_ylabel('Kekuatan Siklus (Amplitudo)')\n",
                             "            ax2.set_xlim(0, 30)\n",
                             "            ax2.grid(True)\n",
                             "            \n",
@@ -489,6 +513,33 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                             "\n",
                             "except Exception as e:\n",
                             "    print(f'Terjadi kesalahan: {e}')"
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "execution_count": null,
+                        "metadata": {},
+                        "outputs": [],
+                        "source": [
+                            "# --- CELL DOWNLOAD RESAMPLED DATA ---\n",
+                            "import os\n",
+                            "\n",
+                            "print(\"Menyiapkan file hasil resampling...\")\n",
+                            "\n",
+                            "if not all_resampled_data:\n",
+                            "    print(\"Error: Tidak ada data yang diproses. Jalankan cell di atas terlebih dahulu.\")\n",
+                            "else:\n",
+                            "    for station_name, series_data in all_resampled_data.items():\n",
+                            "        # Bersihkan nama file\n",
+                            "        clean_name = str(station_name).replace(\" \", \"_\").replace(\"/\", \"-\")\n",
+                            "        fname = f\"resampled_tide_{clean_name}.csv\"\n",
+                            "        \n",
+                            "        # Simpan ke CSV\n",
+                            "        series_data.to_csv(fname)\n",
+                            "        print(f\"Mengunduh {fname}...\")\n",
+                            "        \n",
+                            "        # Trigger download browser\n",
+                            "        files.download(fname)\n"
                         ]
                     }
                 ],
