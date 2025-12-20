@@ -59,7 +59,7 @@
             </div>
             
             <p class="text-gray-600 mb-4 text-sm leading-relaxed">
-                Sistem mendeteksi <b>tidak ada data baru</b> dalam 24 jam terakhir. Kemungkinan perangkat sedang offline atau mengalami gangguan.
+                Sistem mendeteksi <b>tidak ada data baru</b> dalam 10 menit terakhir. Kemungkinan perangkat sedang offline atau mengalami gangguan.
             </p>
             
             <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-5">
@@ -103,6 +103,17 @@
             </h1>
         </div>
         <div class="flex items-center gap-2 md:gap-4">
+            
+            <!-- Documentation Link (NEW) -->
+            <a href="documentation.html" target="_blank" class="text-gray-500 hover:text-blue-600 font-medium text-sm flex items-center gap-1 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="hidden sm:inline">Panduan / Docs</span>
+            </a>
+
+            <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
+
             <span id="system-status" class="px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold bg-gray-100 text-gray-500 flex items-center gap-1.5 whitespace-nowrap">
                 <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400"></span> <span class="hidden sm:inline">Connecting...</span>
             </span>
@@ -176,18 +187,29 @@
             
             <!-- KPI Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <p class="text-xs md:text-sm text-gray-500">Active Stations</p>
-                    <p id="kpi-active" class="text-2xl md:text-3xl font-bold text-gray-800 mt-1">--</p>
+                <!-- Active Stations -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                    <p class="text-xs md:text-sm text-gray-500 mb-1">Active Stations</p>
+                    <p id="kpi-active" class="text-2xl md:text-3xl font-bold text-gray-800">--</p>
+                    <p class="text-[10px] text-gray-400 mt-auto">In selected time range</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <p class="text-xs md:text-sm text-gray-500">Real Time Water Level</p>
-                    <p id="kpi-level" class="text-2xl md:text-3xl font-bold text-blue-600 mt-1">-- cm</p>
-                    <p id="kpi-level-source" class="text-[10px] text-gray-400 mt-1 font-mono truncate">Waiting for data...</p>
+
+                <!-- Real Time Water Level (List) -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col max-h-60">
+                    <p class="text-xs md:text-sm text-gray-500 mb-2 border-b pb-1">Real Time Water Level</p>
+                    <div id="kpi-level-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                        <!-- Items injected here -->
+                        <p class="text-gray-400 text-xs italic">Loading...</p>
+                    </div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <p class="text-xs md:text-sm text-gray-500">Min System Voltage</p>
-                    <p id="kpi-voltage" class="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">-- V</p>
+
+                <!-- System Voltage (List) -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col max-h-60">
+                    <p class="text-xs md:text-sm text-gray-500 mb-2 border-b pb-1">System Voltage</p>
+                    <div id="kpi-voltage-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                        <!-- Items injected here -->
+                        <p class="text-gray-400 text-xs italic">Loading...</p>
+                    </div>
                 </div>
             </div>
 
@@ -379,9 +401,6 @@
         async function fetchDataAndRender() {
             if(isFetching) return; // Prevent Overlap
             isFetching = true;
-            
-            // Only show loading on initial load or manual refresh, not on polling tick
-            // updateSystemStatus('loading'); 
 
             try {
                 let query = db.from('tide_readings')
@@ -412,13 +431,18 @@
                     const lastReading = currentReadings[currentReadings.length - 1];
                     const now = new Date();
                     const lastTime = new Date(lastReading.created_at);
-                    const diffHours = (now - lastTime) / (1000 * 60 * 60);
+                    const diffMinutes = (now - lastTime) / (1000 * 60);
 
-                    if (diffHours <= 24) {
+                    if (diffMinutes <= 10) {
                         updateSystemStatus('live');
                     } else {
-                        const days = Math.floor(diffHours / 24);
-                        const timeStr = days > 0 ? `${days}d ago` : `${Math.floor(diffHours)}h ago`;
+                        const days = Math.floor(diffMinutes / (60 * 24));
+                        const hours = Math.floor(diffMinutes / 60);
+                        let timeStr;
+                        if (days > 0) timeStr = `${days}d ago`;
+                        else if (hours > 0) timeStr = `${hours}h ago`;
+                        else timeStr = `${Math.floor(diffMinutes)}m ago`;
+                        
                         updateSystemStatus('offline', `Updated ${timeStr}`);
                         triggerWarningModal();
                     }
@@ -519,7 +543,11 @@
         function downloadCSV() {
             if (!currentReadings.length) return alert("No data available.");
             const headers = ['Timestamp', 'Station ID', 'Distance (cm)', 'Voltage (V)'];
-            const rows = currentReadings.map(r => [r.created_at, r.station_id, r.distance_cm, r.voltage]);
+            const rows = currentReadings.map(r => {
+                const d = new Date(r.created_at);
+                const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+                return [dateStr, r.station_id, r.distance_cm, r.voltage];
+            });
             const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -529,32 +557,70 @@
         }
 
         function updateKPIs(readings) {
+            // 1. Active Stations Count
             const uniqueActiveStations = new Set(readings.map(r => r.station_id)).size;
             document.getElementById('kpi-active').textContent = uniqueActiveStations;
-            
-            const kpiSourceEl = document.getElementById('kpi-level-source');
 
-            if (!readings.length) {
-                document.getElementById('kpi-level').textContent = '-- cm';
-                document.getElementById('kpi-voltage').textContent = '-- V';
-                kpiSourceEl.textContent = 'No data selected';
+            const levelList = document.getElementById('kpi-level-list');
+            const voltageList = document.getElementById('kpi-voltage-list');
+            
+            levelList.innerHTML = '';
+            voltageList.innerHTML = '';
+
+            if (readings.length === 0) {
+                levelList.innerHTML = '<p class="text-gray-400 text-xs italic">No data selected</p>';
+                voltageList.innerHTML = '<p class="text-gray-400 text-xs italic">No data selected</p>';
                 return;
             }
-            const recent = readings.slice(-10);
             
-            // Use the absolute latest reading for "Real Time"
-            const latestReading = readings[readings.length - 1];
-            document.getElementById('kpi-level').textContent = latestReading.distance_cm.toFixed(1) + ' cm';
+            // 2. Find Latest Readings for each Station
+            const latestReadingsMap = {};
+            // Assuming readings are sorted ASC by created_at, the last occurrence is the latest
+            readings.forEach(r => {
+                latestReadingsMap[r.station_id] = r;
+            });
             
-            // Find station name
-            const station = stations.find(s => s.station_id === latestReading.station_id);
-            const stationName = station ? station.name : latestReading.station_id;
-            kpiSourceEl.textContent = `Latest from: ${stationName}`;
-            
-            const minV = Math.min(...recent.map(r => r.voltage));
-            const vEl = document.getElementById('kpi-voltage');
-            vEl.textContent = minV.toFixed(2) + ' V';
-            vEl.className = `text-2xl md:text-3xl font-bold ${minV < 3.5 ? 'text-red-600 animate-pulse' : 'text-emerald-600'}`;
+            // 3. Render Lists
+            Object.values(latestReadingsMap).forEach(r => {
+                const station = stations.find(s => s.station_id === r.station_id);
+                const name = station ? station.name : r.station_id;
+                
+                // Get Color based on index in main station list to match chart
+                const stationIndex = stations.findIndex(s => s.station_id === r.station_id);
+                const color = colors[stationIndex % colors.length] || '#333';
+                
+                const timeStr = new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // Water Level Item
+                const levelItem = document.createElement('div');
+                levelItem.className = 'flex justify-between items-center text-xs md:text-sm p-1 hover:bg-gray-50 rounded';
+                levelItem.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${color}"></span>
+                        <span class="font-medium text-gray-700 truncate" title="${name}">${name}</span>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="font-bold text-blue-600">${r.distance_cm.toFixed(1)} cm</span>
+                        <span class="text-[10px] text-gray-400 ml-1">(${timeStr})</span>
+                    </div>
+                `;
+                levelList.appendChild(levelItem);
+
+                // Voltage Item
+                const voltageItem = document.createElement('div');
+                voltageItem.className = 'flex justify-between items-center text-xs md:text-sm p-1 hover:bg-gray-50 rounded';
+                voltageItem.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${color}"></span>
+                        <span class="font-medium text-gray-700 truncate" title="${name}">${name}</span>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="font-bold ${r.voltage < 3.5 ? 'text-red-600' : 'text-emerald-600'}">${r.voltage.toFixed(2)} V</span>
+                        <span class="text-[10px] text-gray-400 ml-1">(${timeStr})</span>
+                    </div>
+                `;
+                voltageList.appendChild(voltageItem);
+            });
         }
 
         function setTimeRange(val) {
