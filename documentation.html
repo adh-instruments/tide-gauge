@@ -46,7 +46,8 @@
                 <a href="#csv" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">2. Mengolah Data CSV</a>
                 <a href="#hardware" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">3. Merakit Perangkat</a>
                 <a href="#code" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">4. Pemrograman (Coding)</a>
-                <a href="#database" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">5. Setup Database Supabase</a>
+                <a href="#database" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">5. Setup Database</a>
+                <a href="#datascience" class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">6. Analisis Pasut(Google Colab)</a>
             </nav>
         </aside>
 
@@ -164,8 +165,8 @@ const char* ssid = "NAMA_WIFI_ANDA";
 const char* password = "PASSWORD_WIFI";
 
 // --- KONFIGURASI SUPABASE ---
-const char* supabase_url = "https://uulpgecjhrrgyabikqjc.supabase.co/rest/v1/tide_readings";
-const char* supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHBnZWNqaHJyZ3lhYmlrcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNTI0MTcsImV4cCI6MjA4MTcyODQxN30.b_VW3TI3AIzP2kYE2c5h30e5WZv-ISwd9ViAXm17nOE";
+const char* supabase_url = "https://urlprojectanda.supabase.co"; // silahkan cari tutorial menggunakan supabase
+const char* supabase_key = "eyJ...."; // silahkan cari tutorial menggunakan supabase
 
 // --- IDENTITAS ALAT (GANTI UNTUK SETIAP ALAT) ---
 const char* station_id = "tide-01"; // Ganti ke "tide-02" untuk alat kedua
@@ -272,11 +273,11 @@ float readBatteryVoltage() {
                     </div>
                 </section>
 
-                <section id="database" class="pb-20">
+                <section id="database">
                     <h2 class="text-2xl font-bold">5. Persiapan Database (Supabase)</h2>
                     <p>Jika Anda membuat project baru di Supabase, Anda perlu membuat tabel database agar data bisa masuk. Buka <b>SQL Editor</b> di Supabase dan jalankan perintah berikut:</p>
                     
-                    <div class="relative bg-gray-800 rounded-lg p-4 text-gray-100 font-mono text-sm">
+                    <div class="relative bg-gray-800 rounded-lg p-4 text-gray-100 font-mono text-sm mb-6">
                         <button onclick="copySQL()" class="absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-xs">Copy SQL</button>
                         <code id="sql-code">
 -- 1. Buat Tabel Stasiun (Lokasi)
@@ -311,6 +312,32 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
                     </div>
                 </section>
 
+                <section id="datascience" class="pb-20">
+                    <h2 class="text-2xl font-bold text-blue-800">6. Analisis Pasut (Google Colab)</h2>
+                    <p>Gunakan Google Colab untuk menganalisis periodisitas data pasang surut menggunakan <b>Fast Fourier Transform (FFT)</b>. Notebook ini otomatis memisahkan data berdasarkan <i>Station ID</i> dan menampilkan grafik domain periode (Periodogram).</p>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                        <h3 class="text-lg font-bold text-blue-900 mt-0">Cara Menggunakan:</h3>
+                        <ol class="list-decimal pl-5 space-y-2 text-blue-800">
+                            <li>Download file Notebook (.ipynb) menggunakan tombol di bawah.</li>
+                            <li>Buka <a href="https://colab.research.google.com" target="_blank" class="underline font-bold">Google Colab</a>.</li>
+                            <li>Pilih tab <b>"Upload"</b> dan pilih file yang baru saja didownload.</li>
+                            <li>Di Dashboard ini, klik tombol hijau <b>"Download CSV"</b> untuk mendapatkan data terbaru.</li>
+                            <li>Di Google Colab, jalankan sel pertama (tombol Play). Upload file CSV Anda saat diminta.</li>
+                            <li>Notebook akan otomatis memproses semua stasiun dan menampilkan grafik analisis.</li>
+                        </ol>
+                        
+                        <div class="mt-6">
+                            <button onclick="downloadNotebook()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-transform active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download Notebook (.ipynb)
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -327,6 +354,175 @@ CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (
             navigator.clipboard.writeText(code).then(() => {
                 alert("SQL berhasil disalin!");
             });
+        }
+
+        function downloadNotebook() {
+            const notebookContent = {
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": [
+                            "# Analisis Periodisitas Pasang Surut (FFT)\n",
+                            "Notebook ini melakukan Transformasi Fourier Cepat (FFT) pada data pasang surut untuk mengidentifikasi siklus dominan (misalnya siklus 12 jam atau 24 jam).\n",
+                            "\n",
+                            "**Fitur:**\n",
+                            "- Otomatis mendeteksi semua Station ID.\n",
+                            "- Resampling data agar interval waktu seragam (syarat FFT).\n",
+                            "- Menghitung Periodogram (Amplitudo vs Periode).\n",
+                            "\n",
+                            "**Cara Pakai:**\n",
+                            "1. Jalankan sel di bawah.\n",
+                            "2. Upload file CSV dari dashboard."
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "execution_count": null,
+                        "metadata": {},
+                        "outputs": [],
+                        "source": [
+                            "import pandas as pd\n",
+                            "import numpy as np\n",
+                            "import matplotlib.pyplot as plt\n",
+                            "from scipy.fft import rfft, rfftfreq\n",
+                            "from google.colab import files\n",
+                            "import io\n",
+                            "\n",
+                            "# 1. Upload File\n",
+                            "print('Silakan upload file CSV Anda...')\n",
+                            "uploaded = files.upload()\n",
+                            "filename = next(iter(uploaded))\n",
+                            "\n",
+                            "# 2. Baca Data\n",
+                            "try:\n",
+                            "    df = pd.read_csv(io.BytesIO(uploaded[filename]))\n",
+                            "    # Bersihkan nama kolom (hapus spasi)\n",
+                            "    df.columns = [c.strip() for c in df.columns]\n",
+                            "    \n",
+                            "    # Deteksi kolom otomatis\n",
+                            "    time_col = next((c for c in df.columns if 'time' in c.lower() or 'timestamp' in c.lower()), None)\n",
+                            "    id_col = next((c for c in df.columns if 'station' in c.lower() and 'id' in c.lower()), 'Station ID')\n",
+                            "    val_col = next((c for c in df.columns if 'dist' in c.lower() or 'level' in c.lower()), 'Distance (cm)')\n",
+                            "\n",
+                            "    if not (time_col and id_col and val_col):\n",
+                            "        print('Error: Kolom Waktu/ID/Nilai tidak ditemukan secara otomatis.')\n",
+                            "        print('Kolom yang ada:', df.columns)\n",
+                            "    else:\n",
+                            "        # Konversi waktu\n",
+                            "        df[time_col] = pd.to_datetime(df[time_col])\n",
+                            "        \n",
+                            "        # Cari unik ID Stasiun\n",
+                            "        stations = df[id_col].unique()\n",
+                            "        print(f\"\\nDitemukan {len(stations)} stasiun: {stations}\\n\")\n",
+                            "\n",
+                            "        # Loop untuk setiap stasiun\n",
+                            "        for station in stations:\n",
+                            "            print(f\"--- Menganalisis Stasiun: {station} ---\")\n",
+                            "            \n",
+                            "            # Filter data stasiun ini & urutkan waktu\n",
+                            "            sub_df = df[df[id_col] == station].sort_values(by=time_col)\n",
+                            "            \n",
+                            "            if len(sub_df) < 50:\n",
+                            "                print(f\"Data terlalu sedikit ({len(sub_df)} baris). Melewati analisis FFT.\\n\")\n",
+                            "                continue\n",
+                            "\n",
+                            "            # Resample ke interval 15 menit (FFT butuh interval tetap)\n",
+                            "            sub_df = sub_df.set_index(time_col)\n",
+                            "            # Hapus duplikat index jika ada\n",
+                            "            sub_df = sub_df[~sub_df.index.duplicated(keep='first')]\n",
+                            "            \n",
+                            "            # Resample 15T (15 menit) dan interpolasi data kosong\n",
+                            "            resampled = sub_df[val_col].resample('15T').mean().interpolate(method='linear')\n",
+                            "            \n",
+                            "            # Siapkan Data FFT\n",
+                            "            y = resampled.values\n",
+                            "            N = len(y)\n",
+                            "            T = 15 * 60 # 15 menit dalam detik\n",
+                            "            \n",
+                            "            # Detrending (Kurangi rata-rata agar tidak ada peak di 0 Hz)\n",
+                            "            y_detrended = y - np.mean(y)\n",
+                            "            \n",
+                            "            # Hitung FFT\n",
+                            "            yf = rfft(y_detrended)\n",
+                            "            xf = rfftfreq(N, T)\n",
+                            "            \n",
+                            "            # Konversi Frekuensi ke Periode (Jam)\n",
+                            "            with np.errstate(divide='ignore'):\n",
+                            "                periods = (1 / xf) / 3600 # detik ke jam\n",
+                            "            \n",
+                            "            # Hitung Amplitudo\n",
+                            "            amplitude = 2.0/N * np.abs(yf)\n",
+                            "            \n",
+                            "            # Filter tampilan grafik (hanya periode 2 jam s.d. 30 jam)\n",
+                            "            mask = (periods >= 2) & (periods <= 30)\n",
+                            "            \n",
+                            "            # --- PLOTTING ---\n",
+                            "            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))\n",
+                            "            \n",
+                            "            # Plot 1: Time Series\n",
+                            "            ax1.plot(resampled.index, resampled.values, label='Data (Resampled)', color='tab:blue')\n",
+                            "            ax1.set_title(f'Time Series: {station}')\n",
+                            "            ax1.set_ylabel('Jarak/Level (cm)')\n",
+                            "            ax1.grid(True)\n",
+                            "            \n",
+                            "            # Plot 2: Periodogram\n",
+                            "            ax2.plot(periods[mask], amplitude[mask], color='tab:red')\n",
+                            "            ax2.set_title(f'Analisis Periodisitas (FFT): {station}')\n",
+                            "            ax2.set_xlabel('Periode (Jam)')\n",
+                            "            ax2.set_ylabel('(Amplitudo)')\n",
+                            "            ax2.set_xlim(0, 30)\n",
+                            "            ax2.grid(True)\n",
+                            "            \n",
+                            "            # Tandai Peak Utama (Dominan)\n",
+                            "            peak_idx = np.argmax(amplitude[mask])\n",
+                            "            peak_period = periods[mask][peak_idx]\n",
+                            "            peak_amp = amplitude[mask][peak_idx]\n",
+                            "            ax2.annotate(f'Peak: {peak_period:.1f} Jam', \n",
+                            "                         xy=(peak_period, peak_amp), \n",
+                            "                         xytext=(peak_period+2, peak_amp), \n",
+                            "                         arrowprops=dict(facecolor='black', shrink=0.05))\n",
+                            "\n",
+                            "            plt.tight_layout()\n",
+                            "            plt.show()\n",
+                            "            print('\\n')\n",
+                            "\n",
+                            "except Exception as e:\n",
+                            "    print(f'Terjadi kesalahan: {e}')"
+                        ]
+                    }
+                ],
+                "metadata": {
+                    "kernelspec": {
+                        "display_name": "Python 3",
+                        "language": "python",
+                        "name": "python3"
+                    },
+                    "language_info": {
+                        "codemirror_mode": {
+                            "name": "ipython",
+                            "version": 3
+                        },
+                        "file_extension": ".py",
+                        "mimetype": "text/x-python",
+                        "name": "python",
+                        "nbconvert_exporter": "python",
+                        "pygments_lexer": "ipython3",
+                        "version": "3.8.5"
+                    }
+                },
+                "nbformat": 4,
+                "nbformat_minor": 4
+            };
+
+            const blob = new Blob([JSON.stringify(notebookContent, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analisis_tide_unib.ipynb';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>
