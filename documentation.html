@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Panduan Pengguna & Perakitan</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%230284c7' d='M50 60C30 60 10 70 10 80s20 20 40 20 40-10 40-20-20-20-40-20z' /><rect fill='%23333' x='45' y='15' width='10' height='40'/><circle fill='%23ef4444' cx='50' cy='10' r='10'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .prose h2 { color: #1e3a8a; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        .prose h3 { color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .prose p { margin-bottom: 1rem; line-height: 1.6; color: #4b5563; }
+        .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1rem; color: #4b5563; }
+        .prose li { margin-bottom: 0.25rem; }
+        .step-circle { display: inline-flex; width: 24px; height: 24px; background: #2563eb; color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px; font-weight: bold; }
+    </style>
+</head>
+<body class="h-full flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 h-16 flex-none flex items-center justify-between px-4 md:px-6 shadow-sm z-30 sticky top-0">
+        <div class="flex items-center gap-3 md:gap-4">
+            <img src="https://www.unib.ac.id/wp-content/uploads/2019/10/logo-unib-e1571906638799.png" alt="UNIB Logo" class="h-8 md:h-10 w-auto object-contain">
+            <div class="hidden md:block h-8 w-px bg-gray-200"></div>
+            <h1 class="text-lg md:text-xl font-bold text-gray-800 tracking-tight truncate">
+                Panduan <span class="text-blue-600">Teknis</span>
+            </h1>
+        </div>
+        <div class="flex items-center">
+            <a href="index.html" class="text-gray-500 hover:text-blue-600 font-medium text-sm flex items-center gap-1 transition-colors">
+                &larr; Kembali ke Dashboard
+            </a>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="hidden md:block w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto p-6">
+            <nav class="space-y-1">
+                <a href="#intro" class="block px-3 py-2 text-sm font-medium text-gray-900 rounded-md bg-white shadow-sm ring-1 ring-gray-200">Pendahuluan</a>
+                <a href="#dashboard" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">1. Menggunakan Dashboard</a>
+                <a href="#csv" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">2. Mengolah Data CSV</a>
+                <a href="#hardware" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">3. Merakit Perangkat</a>
+                <a href="#code" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">4. Pemrograman (Coding)</a>
+                <a href="#database" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md">5. Setup Database Supabase</a>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
+            <div class="max-w-4xl mx-auto prose">
+                
+                <div id="intro" class="mb-10">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">Dokumentasi & Panduan Sistem Tide Gauge</h1>
+                    <p class="text-lg">Selamat datang di halaman dokumentasi. Halaman ini dirancang untuk memandu mahasiswa dalam memahami, menggunakan, dan merakit ulang sistem pemantauan pasang surut air laut (Tide Gauge) berbasis IoT.</p>
+                </div>
+
+                <section id="dashboard">
+                    <h2 class="text-2xl font-bold">1. Menggunakan Dashboard</h2>
+                    <p>Dashboard ini menampilkan data <b>real-time</b> dari sensor yang dipasang di lapangan. Berikut fitur utamanya:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><b>Peta Lokasi:</b> Menampilkan posisi alat. Gunakan checkbox di sidebar kiri untuk menampilkan/menyembunyikan stasiun tertentu.</li>
+                        <li><b>Grafik Pasang Surut:</b> Garis biru menunjukkan ketinggian air (cm) terhadap waktu. Data diperbarui otomatis setiap 100ms.</li>
+                        <li><b>Status Baterai:</b> Grafik bawah memantau tegangan baterai. Jika tegangan turun di bawah 3.5V, angka akan berwarna merah (perlu penggantian baterai).</li>
+                        <li><b>Download CSV:</b> Tombol hijau di pojok kanan tabel untuk mengunduh data ke Excel.</li>
+                    </ul>
+                </section>
+
+                <section id="csv">
+                    <h2 class="text-2xl font-bold">2. Mengolah Data CSV di Excel</h2>
+                    <p>File CSV yang diunduh sudah diformat agar mudah dibaca oleh Microsoft Excel. Namun, jika kolom waktu (Timestamp) tidak terbaca otomatis, ikuti langkah ini:</p>
+                    <ol class="list-decimal pl-5 space-y-2">
+                        <li>Buka file CSV di Excel.</li>
+                        <li>Blok kolom <b>A (Timestamp)</b>.</li>
+                        <li>Klik menu <b>Data</b> &rarr; <b>Text to Columns</b>.</li>
+                        <li>Pilih <b>Delimited</b> &rarr; Next &rarr; Uncheck semua &rarr; Next.</li>
+                        <li>Pada "Column Data Format", pilih <b>Date: YMD</b>.</li>
+                        <li>Klik <b>Finish</b>. Excel akan mengenali tanggal dan waktu dengan benar.</li>
+                    </ol>
+                </section>
+
+                <section id="hardware">
+                    <h2 class="text-2xl font-bold">3. Merakit Perangkat (Hardware)</h2>
+                    <p>Sistem ini menggunakan mikrokontroler <b>Lolin32 Lite (ESP32)</b> dan sensor ultrasonik <b>HC-SR04</b>.</p>
+                    
+                    <h3 class="text-lg font-bold">Komponen yang Dibutuhkan:</h3>
+                    <ul class="list-disc pl-5">
+                        <li>Lolin32 Lite (atau ESP32 Dev Module)</li>
+                        <li>Sensor Ultrasonik HC-SR04</li>
+                        <li>Resistor 100k Ohm (R1) & 100k Ohm (R2) untuk pembagi tegangan baterai.</li>
+                        <li>Kabel Jumper & Breadboard/PCB</li>
+                    </ul>
+
+                    <h3 class="text-lg font-bold mt-4">Skema Sambungan Kabel (Wiring):</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg border border-gray-300 font-mono text-sm overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-400">
+                                    <th class="py-2">Komponen</th>
+                                    <th class="py-2">Pin Komponen</th>
+                                    <th class="py-2">Pin ESP32 (Lolin32)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="py-2">HC-SR04</td>
+                                    <td>VCC</td>
+                                    <td>5V / VBUS</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">HC-SR04</td>
+                                    <td>GND</td>
+                                    <td>GND</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">HC-SR04</td>
+                                    <td><b>Trig</b></td>
+                                    <td><b>Pin 14</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">HC-SR04</td>
+                                    <td><b>Echo</b></td>
+                                    <td><b>Pin 12</b></td>
+                                </tr>
+                                <tr class="border-t border-gray-300">
+                                    <td class="py-2">Baterai (+)</td>
+                                    <td>Positif (+)</td>
+                                    <td>Ke Resistor R1 (lalu ke Pin 32)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="code">
+                    <h2 class="text-2xl font-bold">4. Pemrograman (Coding)</h2>
+                    <p>Untuk memprogram alat, Anda memerlukan software <b>Arduino IDE</b>.</p>
+
+                    <h3 class="text-lg font-bold">Langkah Persiapan:</h3>
+                    <ol class="list-decimal pl-5 space-y-2">
+                        <li>Install <a href="https://www.arduino.cc/en/software" target="_blank" class="text-blue-600 underline">Arduino IDE</a>.</li>
+                        <li>Buka menu <b>File</b> &rarr; <b>Preferences</b>.</li>
+                        <li>Di kotak "Additional Boards Manager URLs", masukkan: <br><code class="bg-gray-100 p-1 text-xs">https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</code></li>
+                        <li>Buka <b>Tools</b> &rarr; <b>Board</b> &rarr; <b>Boards Manager</b>. Cari "esp32" dan install versi terbaru.</li>
+                        <li>Buka <b>Tools</b> &rarr; <b>Manage Libraries</b>. Cari dan install library: <b>ArduinoJson</b>.</li>
+                    </ol>
+
+                    <h3 class="text-lg font-bold mt-6">Source Code (Sketch):</h3>
+                    <p>Salin kode di bawah ini ke Arduino IDE. Jangan lupa ubah <code>ssid</code>, <code>password</code>, dan <code>station_id</code> sesuai alat Anda.</p>
+                    
+                    <div class="relative mt-4">
+                        <button onclick="copyCode()" class="absolute top-2 right-2 bg-gray-700 text-white text-xs px-3 py-1 rounded hover:bg-gray-600 z-10">Copy Code</button>
+                        <pre><code id="arduino-code" class="language-cpp">
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// --- KONFIGURASI WIFI ---
+const char* ssid = "NAMA_WIFI_ANDA";
+const char* password = "PASSWORD_WIFI";
+
+// --- KONFIGURASI SUPABASE ---
+const char* supabase_url = "https://uulpgecjhrrgyabikqjc.supabase.co/rest/v1/tide_readings";
+const char* supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHBnZWNqaHJyZ3lhYmlrcWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNTI0MTcsImV4cCI6MjA4MTcyODQxN30.b_VW3TI3AIzP2kYE2c5h30e5WZv-ISwd9ViAXm17nOE";
+
+// --- IDENTITAS ALAT (GANTI UNTUK SETIAP ALAT) ---
+const char* station_id = "tide-01"; // Ganti ke "tide-02" untuk alat kedua
+
+// --- PIN HARDWARE ---
+const int trigPin = 14;   // Pin Trigger HC-SR04
+const int echoPin = 12;   // Pin Echo HC-SR04
+const int voltagePin = 32; // Pin Pembaca Baterai
+
+// Kalibrasi Resistor (Voltage Divider)
+const float R1 = 94900.0;
+const float R2 = 92100.0;
+
+void setup() {
+  Serial.begin(115200);
+  
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Koneksi WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Menghubungkan ke WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nTerhubung!");
+}
+
+void loop() {
+  float jarak = getAverageDistance();
+  float tegangan = readBatteryVoltage();
+
+  Serial.print("ID: "); Serial.println(station_id);
+  Serial.print("Jarak: "); Serial.print(jarak); Serial.println(" cm");
+  Serial.print("Baterai: "); Serial.print(tegangan); Serial.println(" V");
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    sendData(jarak, tegangan);
+  } else {
+    Serial.println("WiFi Terputus. Mencoba Reconnect...");
+    WiFi.reconnect();
+  }
+
+  // Kirim data setiap 1 menit (60000 ms)
+  delay(60000); 
+}
+
+void sendData(float dist, float batt) {
+  HTTPClient http;
+  http.begin(supabase_url);
+  http.addHeader("apikey", supabase_key);
+  http.addHeader("Authorization", String("Bearer ") + supabase_key);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Prefer", "return=minimal");
+
+  JsonDocument doc;
+  doc["station_id"] = station_id;
+  doc["distance_cm"] = dist;
+  doc["voltage"] = batt;
+  
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  int responseCode = http.POST(jsonString);
+  
+  if (responseCode > 0) {
+    Serial.print("Data Terkirim! Kode: "); Serial.println(responseCode);
+  } else {
+    Serial.print("Gagal Kirim: "); Serial.println(responseCode);
+  }
+  http.end();
+}
+
+float getRawDistance() {
+  // Manual Trigger HC-SR04 (Tanpa Library)
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  long duration = pulseIn(echoPin, HIGH);
+  float distance = duration * 0.034 / 2;
+  return distance;
+}
+
+float getAverageDistance() {
+  float sum = 0;
+  int valid = 0;
+  for (int i = 0; i < 5; i++) {
+    float d = getRawDistance();
+    if (d > 0 && d < 500) { sum += d; valid++; }
+    delay(50);
+  }
+  return (valid > 0) ? (sum / valid) : 0.0;
+}
+
+float readBatteryVoltage() {
+  float raw = analogRead(voltagePin) * (3.3 / 4095.0);
+  return (raw * (R1 + R2)) / R2;
+}
+                        </code></pre>
+                    </div>
+                </section>
+
+                <section id="database" class="pb-20">
+                    <h2 class="text-2xl font-bold">5. Persiapan Database (Supabase)</h2>
+                    <p>Jika Anda membuat project baru di Supabase, Anda perlu membuat tabel database agar data bisa masuk. Buka <b>SQL Editor</b> di Supabase dan jalankan perintah berikut:</p>
+                    
+                    <div class="relative bg-gray-800 rounded-lg p-4 text-gray-100 font-mono text-sm">
+                        <button onclick="copySQL()" class="absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded text-xs">Copy SQL</button>
+                        <code id="sql-code">
+-- 1. Buat Tabel Stasiun (Lokasi)
+CREATE TABLE tide_stations (
+    station_id TEXT PRIMARY KEY,
+    name TEXT,
+    latitude FLOAT,
+    longitude FLOAT
+);
+
+-- 2. Buat Tabel Pembacaan (Sensor Data)
+CREATE TABLE tide_readings (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    station_id TEXT REFERENCES tide_stations(station_id),
+    distance_cm FLOAT,
+    voltage FLOAT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Masukkan Data Awal Stasiun
+INSERT INTO tide_stations (station_id, name, latitude, longitude)
+VALUES 
+    ('tide-01', 'Stasiun Dermaga Utara', -3.7912, 102.2645),
+    ('tide-02', 'Stasiun Muara Selatan', -3.8150, 102.3012);
+
+-- 4. Buka Akses Publik (PENTING!)
+ALTER TABLE tide_stations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tide_readings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Access" ON tide_stations FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON tide_readings FOR ALL USING (true) WITH CHECK (true);
+                        </code>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('arduino-code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("Kode berhasil disalin!");
+            });
+        }
+        function copySQL() {
+            const code = document.getElementById('sql-code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("SQL berhasil disalin!");
+            });
+        }
+    </script>
+</body>
+</html>
